@@ -1,0 +1,41 @@
+server:
+  port: 8080
+  error:
+    include-message: never
+    include-stacktrace: never
+
+spring:
+  application:
+    name: astro
+  datasource:
+    # 5433 on the host so this app does not collide with a local PostgreSQL service on 5432.
+    url: jdbc:postgresql://localhost:5433/astro
+    username: astro
+    password: astro
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+astro:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-change-me-astroguide-jwt-secret-key}
+    expiration-minutes: 1440
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
