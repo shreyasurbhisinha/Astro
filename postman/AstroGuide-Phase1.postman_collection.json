@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "AstroGuide Phase 1",
-    "description": "Signup, login, and birth profiles. Set baseUrl, then run Register and copy the token into the token variable.",
+    "name": "AstroGuide Phase 2",
+    "description": "Signup, login, birth profiles, and the sidereal kundli. Set baseUrl, run Register, then copy the token and a profile id into the collection variables.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -86,6 +86,14 @@
           "mode": "raw",
           "raw": "{\n  \"name\": \"Asha Nair\",\n  \"dateOfBirth\": \"1994-03-12\",\n  \"timeOfBirth\": \"14:35:00\",\n  \"birthplace\": \"Kochi, Kerala, India\"\n}"
         }
+      }
+    },
+    {
+      "name": "Get kundli",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/profiles/{{profileId}}/kundli"
       }
     },
     {

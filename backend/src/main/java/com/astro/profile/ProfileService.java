@@ -1,11 +1,13 @@
 package com.astro.profile;
 
 import com.astro.common.ApiException;
+import com.astro.kundli.ChartSnapshotRepository;
 import com.astro.user.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,9 +15,11 @@ import java.util.UUID;
 public class ProfileService {
 
     private final BirthProfileRepository birthProfileRepository;
+    private final ChartSnapshotRepository chartSnapshotRepository;
 
-    public ProfileService(BirthProfileRepository birthProfileRepository) {
+    public ProfileService(BirthProfileRepository birthProfileRepository, ChartSnapshotRepository chartSnapshotRepository) {
         this.birthProfileRepository = birthProfileRepository;
+        this.chartSnapshotRepository = chartSnapshotRepository;
     }
 
     @Transactional
@@ -54,15 +58,28 @@ public class ProfileService {
     @Transactional
     public ProfileResponse update(User user, UUID profileId, ProfileRequest request) {
         BirthProfile profile = findOwned(user, profileId);
+        String place = request.birthplace().trim();
+        boolean placeChanged = !profile.getBirthplace().equals(place);
+        BigDecimal latitude = request.latitude();
+        BigDecimal longitude = request.longitude();
+        String timezone = blankToNull(request.timezone());
+        if (!placeChanged && latitude == null) {
+            latitude = profile.getLatitude();
+            longitude = profile.getLongitude();
+            if (timezone == null) {
+                timezone = profile.getTimezone();
+            }
+        }
         profile.update(
                 request.name().trim(),
                 request.dateOfBirth(),
                 request.timeOfBirth(),
-                request.birthplace().trim(),
-                request.latitude(),
-                request.longitude(),
-                blankToNull(request.timezone())
+                place,
+                latitude,
+                longitude,
+                timezone
         );
+        chartSnapshotRepository.deleteByProfile_Id(profile.getId());
         return ProfileResponse.from(profile);
     }
 

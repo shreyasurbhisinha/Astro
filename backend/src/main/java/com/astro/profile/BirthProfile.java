@@ -75,6 +75,12 @@ public class BirthProfile {
         }
     }
 
+    public void setLocation(BigDecimal latitude, BigDecimal longitude, String timezone) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.timezone = timezone;
+    }
+
     public void update(String name, LocalDate dateOfBirth, LocalTime timeOfBirth, String birthplace,
                        BigDecimal latitude, BigDecimal longitude, String timezone) {
         this.name = name;

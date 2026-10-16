@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import { useAuth } from "../auth";
+import ChartPanel from "../ChartPanel";
 
 const emptyForm = {
   name: "",
@@ -27,6 +28,10 @@ export default function Dashboard() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [chartProfileId, setChartProfileId] = useState(null);
+  const [chart, setChart] = useState(null);
+  const [chartLoading, setChartLoading] = useState(false);
+  const [chartError, setChartError] = useState("");
 
   async function loadProfiles() {
     const data = await api("/api/profiles", { token });
@@ -96,6 +101,9 @@ export default function Dashboard() {
       }
       setEditingId(null);
       setForm(emptyForm);
+      setChart(null);
+      setChartProfileId(null);
+      setChartError("");
       await loadProfiles();
     } catch (requestError) {
       setFieldErrors(fieldMap(requestError.errors));
@@ -115,10 +123,32 @@ export default function Dashboard() {
       if (editingId === profile.id) {
         cancelEdit();
       }
+      if (chartProfileId === profile.id) {
+        setChart(null);
+        setChartProfileId(null);
+        setChartError("");
+      }
       setMessage("Profile deleted.");
       await loadProfiles();
     } catch (requestError) {
       setError(requestError.message || "Could not delete the profile");
+    }
+  }
+
+  async function onViewChart(profile) {
+    setChartProfileId(profile.id);
+    setChart(null);
+    setChartError("");
+    setChartLoading(true);
+    setError("");
+    try {
+      const data = await api(`/api/profiles/${profile.id}/kundli`, { token });
+      setChart(data);
+      await loadProfiles();
+    } catch (requestError) {
+      setChartError(requestError.message || "Could not calculate the chart");
+    } finally {
+      setChartLoading(false);
     }
   }
 
@@ -203,6 +233,9 @@ export default function Dashboard() {
                 </p>
                 <p>{profile.birthplace}</p>
                 <div className="action-row">
+                  <button type="button" onClick={() => onViewChart(profile)} disabled={chartLoading}>
+                    {chartLoading && chartProfileId === profile.id ? "Calculating…" : "View chart"}
+                  </button>
                   <button type="button" className="secondary" onClick={() => startEdit(profile)}>
                     Edit
                   </button>
@@ -214,6 +247,7 @@ export default function Dashboard() {
             ))}
           </div>
         </section>
+        <ChartPanel chart={chart} loading={chartLoading} error={chartError} />
       </main>
     </div>
   );
